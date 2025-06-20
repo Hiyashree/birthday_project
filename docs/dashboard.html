@@ -51,7 +51,7 @@
     let friendsData = [];
 
     async function fetchFriends() {
-      const res = await fetch(`/friends?email=${user.email}`);
+      const res = await fetch(`https://birthday-project-ncca.onrender.com/friends?email=${user.email}`);
       friendsData = await res.json();
 
       friendsListEl.innerHTML = "";
@@ -102,7 +102,7 @@
       e.preventDefault();
       const friendEmail = e.target.friendEmail.value;
 
-      const res = await fetch("/add-friend", {
+      const res = await fetch("https://birthday-project-ncca.onrender.com/add-friend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userEmail: user.email, friendEmail })
@@ -136,7 +136,7 @@
       document.getElementById("invitePreview").innerHTML = html;
 
       // Send Invite to backend
-      await fetch('/send-invite', {
+      await fetch('https://birthday-project-ncca.onrender.com/send-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: user.email, to: name, date, time, place, message: msg })
