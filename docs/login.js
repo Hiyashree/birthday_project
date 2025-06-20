@@ -8,6 +8,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     email: form.email.value.trim(),
     password: form.password.value
   };
+  console.log("Sending login data:", data);
+
 
   try {
    const res = await fetch("https://birthday-project-ncca.onrender.com/login", {
