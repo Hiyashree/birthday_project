@@ -12,7 +12,7 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch("/signup", {
+    const res = await fetch("https://birthday-project-ncca.onrender.com/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
