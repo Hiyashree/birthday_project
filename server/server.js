@@ -10,7 +10,6 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
-app.use(cors());
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -21,6 +20,7 @@ const User = require('./models/user');
 const Invite = require('./models/invite');
 
 const app = express();
+
 
 // ✅ Middleware
 app.use(cors());
