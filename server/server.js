@@ -79,21 +79,34 @@ app.post('/signup', async (req, res) => {
 
 // ✅ Login Route
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
   try {
+    console.log("📩 Login data:", req.body);  // Debug: Show incoming data
+
+    const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      console.log("❌ User not found:", email); // Debug: user not found
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      console.log("❌ Password incorrect for:", email); // Debug: wrong password
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
+    console.log("✅ Login successful for:", email); // Debug: success
     res.json({ token, user: { name: user.name, email: user.email, birthday: user.birthday } });
+
   } catch (err) {
-    res.status(500).json({ message: 'Login failed', error: err });
+    console.error("💥 Login error:", err); // 👉 ACTUAL error to Render logs
+    res.status(500).json({ message: 'Login failed', error: err.message });
   }
 });
+
 
 // ✅ Add Friend Route
 app.post('/add-friend', async (req, res) => {
