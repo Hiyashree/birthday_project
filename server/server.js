@@ -27,6 +27,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('docs'));
 app.use(express.static(path.join(__dirname, '../docs')));
+app.use(cors({
+  origin: 'https://hiyashree.github.io', // your frontend domain
+  credentials: true
+}));
+
 
 
 // ✅ Debug: Check if Mongo URI is loading
