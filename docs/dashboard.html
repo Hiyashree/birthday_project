@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎉 Dashboard - Birthday App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, <span id="userName"></span> 🎈</h2>
+    <p>Your birthday: <span id="userBirthday"></span></p>
+
+    <div id="todayBirthday" style="margin-top: 1rem; color: #b46cf3; font-weight: bold;"></div>
+    
+    <h3>📅 Upcoming Birthdays (Next 7 Days)</h3>
+    <ul id="upcomingBirthdays"></ul>
+
+    <h3>Add a Friend</h3>
+    <form id="addFriendForm">
+      <input type="email" name="friendEmail" placeholder="Friend's Email" required />
+      <button type="submit">Add Friend</button>
+    </form>
+
+    <h3>Your Friends</h3>
+    <ul id="friendsList"></ul>
+
+    <h3>💌 Send Birthday Invite</h3>
+    <form id="inviteForm">
+      <select name="invitee" id="inviteeSelect" required></select>
+      <input type="date" name="date" required />
+      <input type="time" name="time" required />
+      <input type="text" name="place" placeholder="Place" required />
+      <textarea name="message" placeholder="Optional message"></textarea>
+      <button type="submit">Generate Invite</button>
+    </form>
+    <div id="invitePreview"></div>
+
+    <button onclick="logout()" style="margin-top: 1.5rem;">Logout</button>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) window.location.href = "login.html";
+
+    document.getElementById("userName").textContent = user.name;
+    document.getElementById("userBirthday").textContent = user.birthday;
+
+    const friendsListEl = document.getElementById("friendsList");
+    const inviteeSelect = document.getElementById("inviteeSelect");
+    const upcomingList = document.getElementById("upcomingBirthdays");
+    let friendsData = [];
+
+    async function fetchFriends() {
+      const res = await fetch(`/friends?email=${user.email}`);
+      friendsData = await res.json();
+
+      friendsListEl.innerHTML = "";
+      inviteeSelect.innerHTML = "<option value='' disabled selected>Select friend</option>";
+      upcomingList.innerHTML = "";
+
+      const today = new Date().toISOString().slice(5, 10); // MM-DD
+      let todayMessage = "";
+
+      friendsData.forEach(f => {
+        // Friend list
+        const li = document.createElement("li");
+        li.textContent = `${f.name} 🎂 ${f.birthday}`;
+        friendsListEl.appendChild(li);
+
+        // Invite dropdown
+        const opt = document.createElement("option");
+        opt.value = f.name;
+        opt.textContent = f.name;
+        inviteeSelect.appendChild(opt);
+
+        // Birthday Today
+        if (f.birthday.slice(5, 10) === today) {
+          todayMessage += `🎉 It's ${f.name}'s Birthday Today!\n`;
+        }
+
+        // Upcoming Birthdays
+        const bday = new Date(f.birthday);
+        const now = new Date();
+        bday.setFullYear(now.getFullYear());
+
+        const diffDays = Math.floor((bday - now) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 1 && diffDays <= 7) {
+          const upcomingLi = document.createElement("li");
+          upcomingLi.textContent = `${f.name} - ${bday.toDateString()}`;
+          upcomingList.appendChild(upcomingLi);
+        }
+      });
+
+      if (todayMessage) {
+        document.getElementById("todayBirthday").textContent = todayMessage.trim();
+      }
+    }
+
+    fetchFriends();
+
+    document.getElementById("addFriendForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const friendEmail = e.target.friendEmail.value;
+
+      const res = await fetch("/add-friend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail: user.email, friendEmail })
+      });
+
+      const result = await res.json();
+      alert(result.message);
+      fetchFriends();
+    });
+
+    document.getElementById("inviteForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const name = form.invitee.value;
+      const date = form.date.value;
+      const time = form.time.value;
+      const place = form.place.value;
+      const msg = form.message.value;
+
+      // Preview
+      const html = `
+        <div style='margin-top: 1rem; border: 1px solid #ccc; padding: 1rem; border-radius: 10px;'>
+          <h4>You're Invited 🎉</h4>
+          <p><strong>To:</strong> ${name}</p>
+          <p><strong>Date:</strong> ${date}</p>
+          <p><strong>Time:</strong> ${time}</p>
+          <p><strong>Place:</strong> ${place}</p>
+          ${msg ? `<p><strong>Message:</strong> ${msg}</p>` : ""}
+        </div>
+      `;
+      document.getElementById("invitePreview").innerHTML = html;
+
+      // Send Invite to backend
+      await fetch('/send-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: user.email, to: name, date, time, place, message: msg })
+      });
+    });
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
