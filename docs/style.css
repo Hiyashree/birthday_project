@@ -1,4 +1,4 @@
-/* 🌌 Galaxy Theme Variables */
+/* 🌌 Enhanced Galaxy Theme Variables */
 :root {
   --bg-gradient: linear-gradient(to bottom, #0b0019 0%, #140029 100%);
   --nebula-purple: #5f72ff;
@@ -6,23 +6,29 @@
   --glow-blue: #3e9eff;
   --glow-purple: #6f00ff;
   --star-color: white;
+  --planet-blue: #3e54ff;
+  --planet-purple: #a35bff;
 }
 
-/* 🔭 Fix Scroll Issue and Base Reset */
-html, body {
+/* 🔭 Base Reset */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
   height: 100%;
   min-height: 100vh;
-  overflow-y: auto;
   font-family: 'Segoe UI', sans-serif;
   background: var(--bg-gradient);
   color: white;
-  position: relative;
+  overflow-x: hidden;
   scroll-behavior: smooth;
+  position: relative;
 }
 
-/* 🌠 Glowing Nebula and Stardust Background Layers */
+/* 🌠 Glowing Nebula & Stardust */
 body::before,
 body::after {
   content: '';
@@ -35,7 +41,6 @@ body::after {
   transform: translate(-25%, -25%);
 }
 
-/* ✨ Layer 1: Animated Nebula Fog */
 body::before {
   background: radial-gradient(circle at 20% 30%, var(--nebula-purple), transparent 70%),
               radial-gradient(circle at 80% 70%, var(--nebula-blue), transparent 60%),
@@ -46,7 +51,6 @@ body::before {
   filter: blur(2px);
 }
 
-/* ✨ Layer 2: Star Dust Floating and Twinkling */
 body::after {
   background: radial-gradient(circle, white 1px, transparent 1.5px),
               radial-gradient(circle, white 1px, transparent 1.5px),
@@ -56,41 +60,31 @@ body::after {
   animation: driftStardust 40s linear infinite, twinkleDust 5s ease-in-out infinite alternate;
 }
 
-/* 🎇 UNIQUE ANIMATIONS */
-@keyframes floatNebula {
-  0% {
-    transform: translate(-25%, -25%) scale(1);
-    filter: blur(2px) brightness(1);
-  }
-  50% {
-    transform: translate(-20%, -20%) scale(1.05);
-    filter: blur(4px) brightness(1.2);
-  }
-  100% {
-    transform: translate(-25%, -30%) scale(1);
-    filter: blur(3px) brightness(1.1);
-  }
+/* ✨ Floating Planets */
+.planet {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.7;
+  filter: blur(1px);
+  animation: floatPlanet 20s infinite ease-in-out alternate;
 }
 
-@keyframes driftStardust {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  100% {
-    transform: translate(-5%, -10%) rotate(360deg);
-  }
+.planet.blue {
+  width: 80px;
+  height: 80px;
+  background: var(--planet-blue);
+  top: 20%;
+  left: 10%;
+  box-shadow: 0 0 30px var(--planet-blue);
 }
 
-@keyframes twinkleDust {
-  0% {
-    opacity: 0.06;
-  }
-  50% {
-    opacity: 0.12;
-  }
-  100% {
-    opacity: 0.08;
-  }
+.planet.purple {
+  width: 50px;
+  height: 50px;
+  background: var(--planet-purple);
+  bottom: 15%;
+  right: 15%;
+  box-shadow: 0 0 20px var(--planet-purple);
 }
 
 /* ☄️ Container (Galaxy Hug) */
@@ -98,7 +92,7 @@ body::after {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   padding: 30px;
-  margin: 50px auto;
+  margin: 80px auto;
   border-radius: 20px;
   box-shadow: 0 0 25px var(--glow-purple), 0 0 50px var(--glow-blue);
   width: 90%;
@@ -106,6 +100,7 @@ body::after {
   text-align: center;
   position: relative;
   z-index: 1;
+  animation: bounceIn 1.5s ease;
 }
 
 /* 🌌 Headings */
@@ -128,10 +123,14 @@ input, textarea, button, select {
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.1);
   color: #fff;
-  font-family: inherit;
   font-size: 1rem;
-  box-sizing: border-box;
   backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+input:hover, textarea:hover, select:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 10px var(--glow-blue);
 }
 
 /* ✨ Glow textarea */
@@ -149,12 +148,13 @@ button {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 0 10px var(--glow-blue), 0 0 20px var(--glow-purple);
+  position: relative;
 }
 
 button:hover {
   background-color: #4a66ff;
-  transform: scale(1.05);
-  box-shadow: 0 0 20px #76b3ff, 0 0 40px var(--glow-purple);
+  transform: scale(1.08) rotate(-1deg);
+  box-shadow: 0 0 25px #76b3ff, 0 0 45px var(--glow-purple);
 }
 
 /* 🌌 Links */
@@ -167,3 +167,71 @@ a:hover {
   text-decoration: underline;
   color: #ffffff;
 }
+
+/* 🌟 Comets */
+.comet {
+  position: fixed;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(to bottom, white, transparent);
+  opacity: 0.2;
+  z-index: 0;
+  transform: rotate(10deg);
+  animation: cometFall 6s ease-in infinite;
+}
+
+/* 💫 Position each comet manually */
+.comet-1 {
+  left: 25%;
+  top: -80px;
+  animation-delay: 0s;
+}
+
+.comet-2 {
+  right: 25%;
+  top: -80px;
+  animation-delay: 1s;
+}
+
+.comet-3 {
+  left: 50%;
+  top: -100px;
+  animation-delay: 2s;
+}
+
+.comet-4 {
+  right: 15%;
+  top: -60px;
+  animation-delay: 3s;
+}
+
+.comet-5 {
+  left: 10%;
+  top: -90px;
+  animation-delay: 4s;
+}
+
+/* ✅ Make them fall */
+@keyframes cometFall {
+  0% {
+    transform: translateY(0) rotate(15deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(130vh) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cometBlink {
+  0%, 100% { opacity: 0; }
+  30% { opacity: 0.4; }
+  60% { opacity: 0.7; }
+}
+
