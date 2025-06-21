@@ -1,27 +1,121 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f7f0ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  margin: 0;
+/* 🌌 Galaxy Theme Variables */
+:root {
+  --bg-gradient: linear-gradient(to bottom, #0b0019 0%, #140029 100%);
+  --nebula-purple: #5f72ff;
+  --nebula-blue: #00d4ff;
+  --glow-blue: #3e9eff;
+  --glow-purple: #6f00ff;
+  --star-color: white;
 }
 
+/* 🔭 Fix Scroll Issue and Base Reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg-gradient);
+  color: white;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* 🌠 Glowing Nebula and Stardust Background Layers */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 200%;
+  height: 200%;
+  z-index: -2;
+  pointer-events: none;
+  transform: translate(-25%, -25%);
+}
+
+/* ✨ Layer 1: Animated Nebula Fog */
+body::before {
+  background: radial-gradient(circle at 20% 30%, var(--nebula-purple), transparent 70%),
+              radial-gradient(circle at 80% 70%, var(--nebula-blue), transparent 60%),
+              url('https://www.transparenttextures.com/patterns/stardust.png');
+  background-size: cover;
+  opacity: 0.2;
+  animation: floatNebula 60s ease-in-out infinite alternate;
+  filter: blur(2px);
+}
+
+/* ✨ Layer 2: Star Dust Floating and Twinkling */
+body::after {
+  background: radial-gradient(circle, white 1px, transparent 1.5px),
+              radial-gradient(circle, white 1px, transparent 1.5px),
+              radial-gradient(circle, white 1px, transparent 1.5px);
+  background-size: 300px 300px;
+  opacity: 0.08;
+  animation: driftStardust 40s linear infinite, twinkleDust 5s ease-in-out infinite alternate;
+}
+
+/* 🎇 UNIQUE ANIMATIONS */
+@keyframes floatNebula {
+  0% {
+    transform: translate(-25%, -25%) scale(1);
+    filter: blur(2px) brightness(1);
+  }
+  50% {
+    transform: translate(-20%, -20%) scale(1.05);
+    filter: blur(4px) brightness(1.2);
+  }
+  100% {
+    transform: translate(-25%, -30%) scale(1);
+    filter: blur(3px) brightness(1.1);
+  }
+}
+
+@keyframes driftStardust {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(-5%, -10%) rotate(360deg);
+  }
+}
+
+@keyframes twinkleDust {
+  0% {
+    opacity: 0.06;
+  }
+  50% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0.08;
+  }
+}
+
+/* ☄️ Container (Galaxy Hug) */
 .container {
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
   padding: 30px;
+  margin: 50px auto;
   border-radius: 20px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  box-shadow: 0 0 25px var(--glow-purple), 0 0 50px var(--glow-blue);
   width: 90%;
   max-width: 400px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
+/* 🌌 Headings */
 h2 {
   margin-bottom: 20px;
+  color: #f5faff;
+  text-shadow: 0 0 10px var(--glow-purple);
 }
 
+/* 🪐 Form Elements */
 form {
   margin-bottom: 15px;
 }
@@ -29,37 +123,47 @@ form {
 input, textarea, button, select {
   width: 100%;
   margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #d3d3d3;
+  padding: 12px;
+  border: 1px solid #7caaff;
   border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
   font-family: inherit;
   font-size: 1rem;
   box-sizing: border-box;
+  backdrop-filter: blur(5px);
 }
 
+/* ✨ Glow textarea */
 textarea {
   resize: vertical;
   min-height: 60px;
 }
 
+/* 🌟 Buttons */
 button {
-  background-color: #b46cf3;
+  background-color: #3857f0;
   color: white;
-  border: none;
   font-weight: bold;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px var(--glow-blue), 0 0 20px var(--glow-purple);
 }
 
 button:hover {
-  background-color: #9d58e2;
+  background-color: #4a66ff;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #76b3ff, 0 0 40px var(--glow-purple);
 }
 
+/* 🌌 Links */
 a {
-  color: #b46cf3;
+  color: #a4cbff;
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
+  color: #ffffff;
 }
