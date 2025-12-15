@@ -18,6 +18,7 @@ const nodemailer = require('nodemailer');
 
 const User = require('./models/user');
 const Invite = require('./models/invite');
+const FriendRequest = require('./models/friendRequest');
 
 const app = express();
 
@@ -108,41 +109,141 @@ app.post('/login', async (req, res) => {
 });
 
 
-// ✅ Add Friend Route
-app.post('/add-friend', async (req, res) => {
-  const { userEmail, friendEmail } = req.body;
+// ✅ Send Friend Request (instead of instant add)
+app.post('/friend-request', async (req, res) => {
+  const { fromEmail, toEmail } = req.body;
 
   try {
-    const user = await User.findOne({ email: userEmail });
-    const friend = await User.findOne({ email: friendEmail });
+    const fromUser = await User.findOne({ email: fromEmail });
+    const toUser = await User.findOne({ email: toEmail });
 
-    if (!user || !friend) return res.status(404).json({ message: 'User or friend not found' });
-
-    if (user.friends.includes(friendEmail)) {
-      return res.status(400).json({ message: 'Friend already added' });
+    if (!fromUser || !toUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    user.friends.push(friendEmail);
-    await user.save();
+    if (fromUser._id.equals(toUser._id)) {
+      return res.status(400).json({ message: 'You cannot send a request to yourself' });
+    }
 
-    res.json({ message: 'Friend added successfully' });
+    // prevent duplicate pending requests
+    const existingReq = await FriendRequest.findOne({
+      from: fromUser._id,
+      to: toUser._id,
+      status: 'pending'
+    });
+    if (existingReq) {
+      return res.status(400).json({ message: 'Friend request already sent' });
+    }
+
+    // also check if already friends
+    const alreadyFriend = fromUser.friends.some(
+      f => f.friend && f.friend.equals(toUser._id) && f.status === 'accepted'
+    );
+    if (alreadyFriend) {
+      return res.status(400).json({ message: 'You are already friends' });
+    }
+
+    const fr = new FriendRequest({ from: fromUser._id, to: toUser._id });
+    await fr.save();
+
+    res.json({ message: 'Friend request sent' });
   } catch (err) {
-    res.status(500).json({ message: 'Error adding friend', error: err });
+    res.status(500).json({ message: 'Error sending friend request', error: err });
   }
 });
 
-// ✅ Get Friends List
-app.get('/friends', async (req, res) => {
+// ✅ Get incoming friend requests for a user
+app.get('/friend-requests', async (req, res) => {
   const { email } = req.query;
 
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const friends = await User.find({ email: { $in: user.friends } }, 'name email birthday');
-    res.json(friends);
+    const requests = await FriendRequest.find({
+      to: user._id,
+      status: 'pending'
+    }).populate('from', 'name email');
+
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching friend requests', error: err });
+  }
+});
+
+// ✅ Accept or reject a friend request
+app.post('/friend-request/respond', async (req, res) => {
+  const { requestId, action } = req.body; // 'accept' or 'reject'
+
+  try {
+    const request = await FriendRequest.findById(requestId).populate('from to');
+    if (!request || request.status !== 'pending') {
+      return res.status(400).json({ message: 'Invalid or already handled request' });
+    }
+
+    if (action === 'accept') {
+      request.status = 'accepted';
+
+      // add each other as friends
+      request.from.friends.push({ friend: request.to._id, status: 'accepted' });
+      request.to.friends.push({ friend: request.from._id, status: 'accepted' });
+
+      await request.from.save();
+      await request.to.save();
+    } else if (action === 'reject') {
+      request.status = 'rejected';
+    } else {
+      return res.status(400).json({ message: 'Unknown action' });
+    }
+
+    await request.save();
+
+    res.json({ message: `Friend request ${action}ed` });
+  } catch (err) {
+    res.status(500).json({ message: 'Error responding to friend request', error: err });
+  }
+});
+
+// ✅ Get Friends List (using new friends schema)
+app.get('/friends', async (req, res) => {
+  const { email } = req.query;
+
+  try {
+    const user = await User.findOne({ email }).populate('friends.friend', 'name email birthday');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const acceptedFriends = user.friends
+      .filter(f => f.status === 'accepted' && f.friend)
+      .map(f => f.friend);
+
+    res.json(acceptedFriends);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching friends', error: err });
+  }
+});
+
+// ✅ Simple user search (by name or email)
+app.get('/search-users', async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.trim() === '') {
+    return res.json([]);
+  }
+
+  try {
+    const users = await User.find(
+      {
+        $or: [
+          { email: { $regex: q, $options: 'i' } },
+          { name: { $regex: q, $options: 'i' } }
+        ]
+      },
+      'name email birthday'
+    );
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Error searching users', error: err });
   }
 });
 
