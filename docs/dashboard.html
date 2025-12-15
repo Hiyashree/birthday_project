@@ -27,8 +27,15 @@
     <h3>Add a Friend</h3>
     <form id="addFriendForm">
       <input type="email" name="friendEmail" placeholder="Friend's Email" required />
-      <button type="submit">Add Friend</button>
+      <button type="submit">Send Friend Request</button>
     </form>
+
+    <h3>Friend Requests</h3>
+    <ul id="friendRequests"></ul>
+
+    <h3>Find People</h3>
+    <input type="text" id="searchInput" placeholder="Search by name or email" />
+    <ul id="searchResults"></ul>
 
     <h3>Your Friends</h3>
     <ul id="friendsList"></ul>
@@ -57,6 +64,9 @@
     const friendsListEl = document.getElementById("friendsList");
     const inviteeSelect = document.getElementById("inviteeSelect");
     const upcomingList = document.getElementById("upcomingBirthdays");
+    const friendRequestsEl = document.getElementById("friendRequests");
+    const searchInput = document.getElementById("searchInput");
+    const searchResultsEl = document.getElementById("searchResults");
     let friendsData = [];
 
     async function fetchFriends() {
@@ -105,16 +115,74 @@
       }
     }
 
+    async function fetchFriendRequests() {
+      const res = await fetch(`https://birthday-project-ncca.onrender.com/friend-requests?email=${user.email}`);
+      const requests = await res.json();
+
+      friendRequestsEl.innerHTML = "";
+
+      requests.forEach(req => {
+        const li = document.createElement("li");
+        li.textContent = `${req.from.name} (${req.from.email}) wants to be your friend`;
+
+        const acceptBtn = document.createElement("button");
+        acceptBtn.textContent = "Accept";
+        acceptBtn.onclick = () => respondToRequest(req._id, "accept");
+
+        const rejectBtn = document.createElement("button");
+        rejectBtn.textContent = "Reject";
+        rejectBtn.onclick = () => respondToRequest(req._id, "reject");
+
+        li.appendChild(acceptBtn);
+        li.appendChild(rejectBtn);
+        friendRequestsEl.appendChild(li);
+      });
+    }
+
+    async function respondToRequest(id, action) {
+      const res = await fetch("https://birthday-project-ncca.onrender.com/friend-request/respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId: id, action })
+      });
+      const result = await res.json();
+      alert(result.message);
+      fetchFriendRequests();
+      fetchFriends();
+    }
+
+    async function searchUsers(query) {
+      if (!query || query.trim() === "") {
+        searchResultsEl.innerHTML = "";
+        return;
+      }
+
+      const res = await fetch(`https://birthday-project-ncca.onrender.com/search-users?q=${encodeURIComponent(query)}`);
+      const users = await res.json();
+
+      searchResultsEl.innerHTML = "";
+      users.forEach(u => {
+        const li = document.createElement("li");
+        li.textContent = `${u.name} (${u.email}) 🎂 ${u.birthday}`;
+        searchResultsEl.appendChild(li);
+      });
+    }
+
     fetchFriends();
+    fetchFriendRequests();
+
+    searchInput.addEventListener("input", (e) => {
+      searchUsers(e.target.value);
+    });
 
     document.getElementById("addFriendForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const friendEmail = e.target.friendEmail.value;
 
-      const res = await fetch("https://birthday-project-ncca.onrender.com/add-friend", {
+      const res = await fetch("https://birthday-project-ncca.onrender.com/friend-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail: user.email, friendEmail })
+        body: JSON.stringify({ fromEmail: user.email, toEmail: friendEmail })
       });
 
       const result = await res.json();
